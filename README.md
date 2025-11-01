@@ -1,5 +1,7 @@
 # Procedural Dungeon Generator
 
+Iida Porola, *Aineopintojen harjoitustyö: Algoritmit ja tekoäly*, periodi 2, syksy 2025.
+
 Configurable pygame project for generating procedural 2D dungeon layouts.
 
 ## Documentation
