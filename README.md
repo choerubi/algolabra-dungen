@@ -10,7 +10,7 @@ Configurable pygame project for generating procedural 2D dungeon layouts.
 - [Testing report](./documentation/testing_report.md)
 - [User guide](./documentation/user_guide.md)
 
-## Weekly reports
+## Weekly Reports
 - [Weekly report #1](./documentation/weekly_report_1.md)
 - [Weekly report #2](./documentation/weekly_report_2.md)
 - [Weekly report #3](./documentation/weekly_report_3.md)
