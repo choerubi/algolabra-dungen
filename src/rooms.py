@@ -28,8 +28,9 @@ class Room:
             tile_height * TILE_SIZE
         )
 
+# pylint: disable=too-many-positional-arguments,too-many-locals
 def generate_rooms(grid_width, grid_height, min_size, max_size, max_rooms, margin):
-    """A method that randomly generates rooms on a grid.
+    """A function that randomly generates rooms on a grid.
 
     Args:
         grid_width: Dungeon width in tile units.

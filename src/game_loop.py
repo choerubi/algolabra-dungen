@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import pygame
 import rooms
@@ -50,7 +51,8 @@ class GameLoop:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit()
+                pygame.quit()
+                sys.exit()
 
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
