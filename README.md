@@ -4,6 +4,9 @@ Iida Porola, *Aineopintojen harjoitustyö: Algoritmit ja tekoäly*, periodi 2, s
 
 Configurable pygame project for generating procedural 2D dungeon layouts.
 
+![CI](https://github.com/choerubi/algolabra-dungen/actions/workflows/main.yml/badge.svg)
+[![codecov](https://codecov.io/gh/choerubi/algolabra-dungen/graph/badge.svg?token=BCVIGKRP59)](https://codecov.io/gh/choerubi/algolabra-dungen)
+
 ## Documentation
 - [Project specification](./documentation/project_specification.md)
 - [Project implementation](./documentation/project_implementation.md)
