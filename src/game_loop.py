@@ -8,7 +8,7 @@ from config import (
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
 )
 
-# pylint: disable=too-many-instance-attributes,too-many-statements
+# pylint: disable=too-many-instance-attributes
 class GameLoop:
     def __init__(self):
         """A constructor that initializes the game window."""
@@ -21,43 +21,62 @@ class GameLoop:
             center=(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2)
         )
 
-        dir_name = os.path.dirname(__file__)
+        self.dir_name = os.path.dirname(__file__)
 
-        font_path = os.path.join(dir_name, "assets", "fonts", "PressStart2P-Regular.ttf")
-        title_font = pygame.font.Font(font_path, 32)
-        main_font = pygame.font.Font(font_path, 20)
+        self._load_fonts()
+        self._create_buttons()
+        self._load_assets()
 
-        self.title_text = title_font.render("2D DUNGEON GENERATOR", True, (255, 255, 255))
+        self.generate_new_dungeon = False
+        self.rooms = None
+
+        self.dungeon_surface.fill((255, 255, 255))
+
+    def _load_fonts(self):
+        """A method that loads the fonts and renders the title text."""
+
+        font_path = os.path.join(self.dir_name, "assets", "fonts", "PressStart2P-Regular.ttf")
+        self.title_font = pygame.font.Font(font_path, 32)
+        self.main_font = pygame.font.Font(font_path, 20)
+
+        self.title_text = self.title_font.render("2D DUNGEON GENERATOR", True, (255, 255, 255))
         self.title_position = (DISPLAY_WIDTH // 2 - self.title_text.get_width() // 2, 40)
 
+    def _create_buttons(self):
+        """A method that creates the buttons and their text labels."""
+
         self.generate_button_rect = pygame.Rect(40, 200, 200, 50)
-        self.generate_button_text = main_font.render("GENERATE", True, (255, 255, 255))
+        self.generate_button_text = self.main_font.render("GENERATE", True, (255, 255, 255))
         self.generate_text_rect = self.generate_button_text.get_rect(
             center=self.generate_button_rect.center
         )
 
         self.exit_button_rect = pygame.Rect(40, 275, 200, 50)
-        self.exit_button_text = main_font.render("EXIT", True, (255, 255, 255))
+        self.exit_button_text = self.main_font.render("EXIT", True, (255, 255, 255))
         self.exit_text_rect = self.exit_button_text.get_rect(
             center=self.exit_button_rect.center
         )
 
+    def _load_assets(self):
+        """A method that loads the tile assets."""
+
         self.floor_tile_1 = pygame.image.load(
-            os.path.join(dir_name, "assets", "sprite_022.png")
+            os.path.join(self.dir_name, "assets", "sprite_022.png")
         ).convert()
         self.floor_tile_2 = pygame.image.load(
-            os.path.join(dir_name, "assets", "sprite_023.png")
+            os.path.join(self.dir_name, "assets", "sprite_023.png")
         ).convert()
-
-        self.rooms = []
-
-        self.dungeon_surface.fill((255, 255, 255))
 
     def start(self):
         """A method that runs the main game loop."""
 
         while True:
             self._handle_events()
+
+            if self.generate_new_dungeon:
+                self._generate_dungeon()
+                self.generate_new_dungeon = False
+
             self._render()
 
     def _handle_events(self):
@@ -74,16 +93,21 @@ class GameLoop:
                     sys.exit()
 
                 elif self.generate_button_rect.collidepoint(event.pos):
-                    self.rooms = rooms.generate_rooms(
-                        grid_width=DUNGEON_WIDTH // TILE_SIZE,
-                        grid_height=DUNGEON_HEIGHT // TILE_SIZE,
-                        min_size=2,
-                        max_size=10,
-                        max_rooms=12,
-                        margin=2
-                    )
+                    self.generate_new_dungeon = True
 
-                    self._draw_rooms()
+    def _generate_dungeon(self):
+        """A method that generates a new dungeon when the button is pressed."""
+
+        self.rooms = rooms.generate_rooms(
+            grid_width=DUNGEON_WIDTH // TILE_SIZE,
+            grid_height=DUNGEON_HEIGHT // TILE_SIZE,
+            min_size=2,
+            max_size=10,
+            max_rooms=12,
+            margin=2
+        )
+
+        self._draw_rooms()
 
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
