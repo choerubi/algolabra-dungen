@@ -36,6 +36,20 @@ class TestGenerateRooms(unittest.TestCase):
             self.assertLessEqual(room.tile_x + room.tile_width, grid_width)
             self.assertLessEqual(room.tile_y + room.tile_height, grid_height)
 
+    def test_no_room_overlaps(self):
+        rooms = generate_rooms(
+            grid_width=40,
+            grid_height=30,
+            min_size=2,
+            max_size=10,
+            max_rooms=10,
+            margin=2
+        )
+
+        for i, room_a in enumerate(rooms):
+            for room_b in rooms[i + 1:]:
+                self.assertFalse(room_a.room_rect.colliderect(room_b.room_rect))
+
     def test_no_infinite_room_generation(self):
         max_rooms = 10
 
