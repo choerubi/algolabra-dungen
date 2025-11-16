@@ -8,12 +8,13 @@ from config import (
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
 )
 
+# pylint: disable=too-many-instance-attributes,too-many-statements
 class GameLoop:
     def __init__(self):
         """A constructor that initializes the game window."""
 
         self.display = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
-        pygame.display.set_caption("2D Dungeon Generator")
+        pygame.display.set_caption("Dungeon Generator")
 
         self.dungeon_surface = pygame.Surface((DUNGEON_WIDTH, DUNGEON_HEIGHT))
         self.dungeon_rect = self.dungeon_surface.get_rect(
@@ -21,6 +22,26 @@ class GameLoop:
         )
 
         dir_name = os.path.dirname(__file__)
+
+        font_path = os.path.join(dir_name, "assets", "fonts", "PressStart2P-Regular.ttf")
+        title_font = pygame.font.Font(font_path, 32)
+        main_font = pygame.font.Font(font_path, 20)
+
+        self.title_text = title_font.render("2D DUNGEON GENERATOR", True, (255, 255, 255))
+        self.title_position = (DISPLAY_WIDTH // 2 - self.title_text.get_width() // 2, 40)
+
+        self.generate_button_rect = pygame.Rect(40, 200, 200, 50)
+        self.generate_button_text = main_font.render("GENERATE", True, (255, 255, 255))
+        self.generate_text_rect = self.generate_button_text.get_rect(
+            center=self.generate_button_rect.center
+        )
+
+        self.exit_button_rect = pygame.Rect(40, 275, 200, 50)
+        self.exit_button_text = main_font.render("EXIT", True, (255, 255, 255))
+        self.exit_text_rect = self.exit_button_text.get_rect(
+            center=self.exit_button_rect.center
+        )
+
         self.floor_tile_1 = pygame.image.load(
             os.path.join(dir_name, "assets", "sprite_022.png")
         ).convert()
@@ -28,16 +49,9 @@ class GameLoop:
             os.path.join(dir_name, "assets", "sprite_023.png")
         ).convert()
 
-        self.rooms = rooms.generate_rooms(
-            grid_width=DUNGEON_WIDTH // TILE_SIZE,
-            grid_height=DUNGEON_HEIGHT // TILE_SIZE,
-            min_size=2,
-            max_size=10,
-            max_rooms=10,
-            margin=2
-        )
+        self.rooms = []
 
-        self._draw_rooms()
+        self.dungeon_surface.fill((255, 255, 255))
 
     def start(self):
         """A method that runs the main game loop."""
@@ -53,6 +67,23 @@ class GameLoop:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.exit_button_rect.collidepoint(event.pos):
+                    pygame.quit()
+                    sys.exit()
+
+                elif self.generate_button_rect.collidepoint(event.pos):
+                    self.rooms = rooms.generate_rooms(
+                        grid_width=DUNGEON_WIDTH // TILE_SIZE,
+                        grid_height=DUNGEON_HEIGHT // TILE_SIZE,
+                        min_size=2,
+                        max_size=10,
+                        max_rooms=12,
+                        margin=2
+                    )
+
+                    self._draw_rooms()
 
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
@@ -81,7 +112,14 @@ class GameLoop:
         """A method that renders the current game frame."""
 
         self.display.fill((0, 0, 0))
-
         self.display.blit(self.dungeon_surface, self.dungeon_rect)
+
+        self.display.blit(self.title_text, self.title_position)
+
+        pygame.draw.rect(self.display, (0, 0, 0), self.generate_button_rect)
+        self.display.blit(self.generate_button_text, self.generate_text_rect)
+
+        pygame.draw.rect(self.display, (0, 0, 0), self.exit_button_rect)
+        self.display.blit(self.exit_button_text, self.exit_text_rect)
 
         pygame.display.flip()
