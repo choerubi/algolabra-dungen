@@ -20,6 +20,7 @@ class TestGenerateRooms(unittest.TestCase):
     def test_rooms_within_bounds(self):
         grid_width = 40
         grid_height = 30
+        margin = 2
 
         rooms = generate_rooms(
             grid_width=grid_width,
@@ -27,14 +28,14 @@ class TestGenerateRooms(unittest.TestCase):
             min_size=2,
             max_size=10,
             max_rooms=10,
-            margin=2
+            margin=margin
         )
 
         for room in rooms:
-            self.assertGreaterEqual(room.tile_x, 0)
-            self.assertGreaterEqual(room.tile_y, 0)
-            self.assertLessEqual(room.tile_x + room.tile_width, grid_width)
-            self.assertLessEqual(room.tile_y + room.tile_height, grid_height)
+            self.assertGreaterEqual(room.tile_x, margin)
+            self.assertGreaterEqual(room.tile_y, margin)
+            self.assertLessEqual(room.tile_x + room.tile_width, grid_width - margin)
+            self.assertLessEqual(room.tile_y + room.tile_height, grid_height - margin)
 
     def test_no_room_overlaps(self):
         rooms = generate_rooms(
