@@ -39,6 +39,35 @@ class Triangle:
     def calculate_circumcircle(self):
         """A method that calculates the circumcenter and circumradius of the triangle."""
 
+        ax = self.v1[0]
+        ay = self.v1[1]
+        bx = self.v2[0]
+        by = self.v2[1]
+        cx = self.v3[0]
+        cy = self.v3[1]
+
+        # Calculate determinant
+        d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+
+        # Calculate x-coordinate for circumcenter U = (Ux, Uy)
+        ux = (
+            (ax * ax + ay * ay) * (by - cy) +
+            (bx * bx + by * by) * (cy - ay) +
+            (cx * cx + cy * cy) * (ay - by)
+            ) / d
+
+        # Calculate y-coordinate for circumcenter U = (Ux, Uy)
+        uy = (
+            (ax * ax + ay * ay) * (cx - bx) +
+            (bx * bx + by * by) * (ax - cx) +
+            (cx * cx + cy * cy) * (bx - ax)
+            ) / d
+
+        self.circumcenter = (ux, uy)
+
+        # Calculate squared distance from circumcenter to any vertex
+        self.circumradius = (ux - ax)**2 + (uy - ay)**2
+
     def vertex_in_circumcircle(self, vertex: Tuple):
         """A method that checks whether a vertex is inside the circumcircle."""
 
