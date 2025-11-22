@@ -33,7 +33,7 @@ class Triangle:
         ]
 
         self.circumcenter = None
-        self.circumradius = None
+        self.sq_circumradius = None
         self.calculate_circumcircle()
 
     def calculate_circumcircle(self):
@@ -49,27 +49,38 @@ class Triangle:
         # Calculate determinant
         d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
 
-        # Calculate x-coordinate for circumcenter U = (Ux, Uy)
+        # If determinant is zero, the triangle has zero area,
+        # meaning it has collinear vertices and no valid circumcircle exists
+        if d == 0:
+            self.circumcenter = None
+            self.sq_circumradius = float("inf")
+            return
+
+        # Calculate circumcenter coordinates
         ux = (
             (ax * ax + ay * ay) * (by - cy) +
             (bx * bx + by * by) * (cy - ay) +
             (cx * cx + cy * cy) * (ay - by)
             ) / d
-
-        # Calculate y-coordinate for circumcenter U = (Ux, Uy)
         uy = (
             (ax * ax + ay * ay) * (cx - bx) +
             (bx * bx + by * by) * (ax - cx) +
             (cx * cx + cy * cy) * (bx - ax)
             ) / d
-
         self.circumcenter = (ux, uy)
 
-        # Calculate squared distance from circumcenter to any vertex
-        self.circumradius = (ux - ax)**2 + (uy - ay)**2
+        # Calculate squared distance from circumcenter to any of the vertices
+        self.sq_circumradius = (ux - ax)**2 + (uy - ay)**2
 
-    def vertex_in_circumcircle(self, vertex: Tuple):
+    def vertex_in_circumcircle(self, v: Tuple):
         """A method that checks whether a vertex is inside the circumcircle."""
+
+        if self.circumcenter is None:
+            return False
+
+        dx = self.circumcenter[0] - v[0]
+        dy = self.circumcenter[1] - v[1]
+        return dx**2 + dy**2 < self.sq_circumradius
 
 class BowyerWatson:
     pass
