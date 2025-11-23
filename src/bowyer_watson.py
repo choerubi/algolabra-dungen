@@ -90,6 +90,33 @@ class BowyerWatson:
 
         self.triangles = []
 
+    def triangulate(self, vertices):
+        """A method that performs the Delaunay triangulation for the given vertices."""
+
+        # Create the super triangle
+        super_triangle = self.create_super_triangle(vertices)
+        self.triangles = [super_triangle]
+
+        # Iterate over given vertices one at a time
+        for vertex in vertices:
+            self.add_vertex(vertex)
+
+        # Final step of the triangulation procedure
+        # Remove triangles that share a vertex with the initial super triangle,
+        # as the super triangle vertices are not part of the initial set of vertices
+        self.remove_super_triangle(super_triangle)
+
+        return self.triangles
+
+    def add_vertex(self, vertex):
+        """A method that adds a new vertex into the triangulation."""
+
+        invalid_triangles = self.find_invalid_triangles(vertex)
+        polygon_edges = self.find_polygonal_hole_edges(invalid_triangles)
+
+        self.remove_invalid_triangles(invalid_triangles)
+        self.create_new_triangle(vertex, polygon_edges)
+
     def create_super_triangle(self, vertices):
         """A method that creates a triangle containing all given vertices."""
 
@@ -117,18 +144,6 @@ class BowyerWatson:
         v2 = (mid_x - 20 * d_max, mid_y + 20 * d_max)
         v3 = (mid_x + 20 * d_max, mid_y + 20 * d_max)
         return Triangle(v1, v2, v3)
-
-    def triangulate(self, vertices):
-        """A method that performs the Delaunay triangulation for the given vertices."""
-
-        # Create the super triangle
-        super_triangle = self.create_super_triangle(vertices)
-        self.triangles = [super_triangle]
-
-        # return self.triangles
-
-    def add_vertex(self, vertex):
-        """A method that adds a new vertex into the triangulation."""
 
     def find_invalid_triangles(self, vertex):
         """A method that finds triangles with circumcircles that contain the given vertex."""
