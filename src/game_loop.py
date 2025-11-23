@@ -3,6 +3,7 @@ import sys
 import random
 import pygame
 import rooms
+import bowyer_watson
 from config import (
     DISPLAY_WIDTH, DISPLAY_HEIGHT,
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
@@ -29,8 +30,9 @@ class GameLoop:
 
         self.generate_new_dungeon = False
         self.rooms = None
+        self.bowyer_watson = bowyer_watson.BowyerWatson()
 
-        self.dungeon_surface.fill((255, 255, 255))
+        self.dungeon_surface.fill((37, 19, 26))
 
     def _load_fonts(self):
         """A method that loads the fonts and renders the title text."""
@@ -108,11 +110,12 @@ class GameLoop:
         )
 
         self._draw_rooms()
+        self._draw_triangulation()
 
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
 
-        self.dungeon_surface.fill((255, 255, 255))
+        self.dungeon_surface.fill((37, 19, 26))
 
         # Draw the rooms
         for room in self.rooms:
@@ -131,6 +134,22 @@ class GameLoop:
 
                     floor_tile = random.choice([self.floor_tile_1, self.floor_tile_2])
                     self.dungeon_surface.blit(floor_tile, tile_rect)
+
+    def _draw_triangulation(self):
+        """A method that draws the Delaunay triangulation onto the dungeon surface."""
+
+        room_centers = []
+
+        for room in self.rooms:
+            center_x = room.tile_x * TILE_SIZE + room.tile_width * TILE_SIZE // 2
+            center_y = room.tile_y * TILE_SIZE + room.tile_height * TILE_SIZE // 2
+            room_centers.append((center_x, center_y))
+
+        triangles = self.bowyer_watson.triangulate(room_centers)
+
+        for triangle in triangles:
+            for edge in triangle.edges:
+                pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
 
     def _render(self):
         """A method that renders the current game frame."""
