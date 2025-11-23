@@ -72,14 +72,14 @@ class Triangle:
         # Calculate squared distance from circumcenter to any of the vertices
         self.sq_circumradius = (ux - ax)**2 + (uy - ay)**2
 
-    def vertex_in_circumcircle(self, v: Tuple):
+    def vertex_in_circumcircle(self, vertex: Tuple):
         """A method that checks whether a vertex is inside the circumcircle."""
 
         if self.circumcenter is None:
             return False
 
-        dx = self.circumcenter[0] - v[0]
-        dy = self.circumcenter[1] - v[1]
+        dx = self.circumcenter[0] - vertex[0]
+        dy = self.circumcenter[1] - vertex[1]
         return dx**2 + dy**2 < self.sq_circumradius
 
 class BowyerWatson:
@@ -111,7 +111,8 @@ class BowyerWatson:
         mid_x = (min_x + max_x) / 2
         mid_y = (min_y + max_y) / 2
 
-        # Use a scale factor of 20 to create super triangle vertices
+        # Create super triangle vertices
+        # Multiply by scale factor 20 to make sure all vertices are inside the triangle
         v1 = (mid_x, mid_y - 20 * d_max)
         v2 = (mid_x - 20 * d_max, mid_y + 20 * d_max)
         v3 = (mid_x + 20 * d_max, mid_y + 20 * d_max)
@@ -165,11 +166,40 @@ class BowyerWatson:
 
         return polygonal_hole_edges
 
-    def remove_invalid_triangles(self):
-        pass
+    def remove_invalid_triangles(self, invalid_triangles):
+        """A method that removes invalid triangles from the triangulation."""
 
-    def remove_super_triangle(self):
-        pass
+        valid_triangles = []
 
-    def create_triangle(self):
-        pass
+        for t in self.triangles:
+            if t not in invalid_triangles:
+                valid_triangles.append(t)
+
+        self.triangles = valid_triangles
+
+    def create_new_triangle(self, vertex, polygonal_hole_edges):
+        """A method that forms new triangles by connecting the given vertex with the 
+            unshared edges of the polygonal hole and adds these triangles to the triangulation.
+
+        This basically means filling the polygonal hole with new triangles."""
+
+        # Connect vertex to the two endpoints of one polygonal edge
+        for edge in polygonal_hole_edges:
+            self.triangles.append(Triangle(vertex, edge.v1, edge.v2))
+
+    def remove_super_triangle(self, super_triangle):
+        """A method that removes triangles that share a vertex with the initial super triangle."""
+
+        valid_triangles = []
+
+        st1 = super_triangle.v1
+        st2 = super_triangle.v2
+        st3 = super_triangle.v3
+
+        for t in self.triangles:
+            if (st1 not in (t.v1, t.v2, t.v3) and
+                st2 not in (t.v1, t.v2, t.v3) and
+                st3 not in (t.v1, t.v2, t.v3)):
+                valid_triangles.append(t)
+
+        self.triangles = valid_triangles
