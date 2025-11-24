@@ -15,4 +15,5 @@ I started working on the Bowyer-Watson algorithm, which, at first, seemed very c
   - Adding generate and exit buttons
   - Working on the Bowyer-Watson algorithm
   - Writing the weekly report
-  - Working on the the testing report
+  - Working on the testing report
+
