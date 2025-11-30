@@ -9,7 +9,7 @@ from config import (
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
 )
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes,too-many-nested-blocks
 class GameLoop:
     def __init__(self):
         """A constructor that initializes the game window."""
@@ -28,8 +28,11 @@ class GameLoop:
         self._create_buttons()
         self._load_assets()
 
+        self.current_view = 0
+
         self.generate_new_dungeon = False
         self.rooms = None
+
         self.bowyer_watson = bowyer_watson.BowyerWatson()
 
         self.dungeon_surface.fill((37, 19, 26))
@@ -53,10 +56,32 @@ class GameLoop:
             center=self.generate_button_rect.center
         )
 
-        self.exit_button_rect = pygame.Rect(40, 275, 200, 50)
+        self.exit_button_rect = pygame.Rect(40, 275, 125, 50)
         self.exit_button_text = self.main_font.render("EXIT", True, (255, 255, 255))
         self.exit_text_rect = self.exit_button_text.get_rect(
             center=self.exit_button_rect.center
+        )
+
+        self.left_button_rect = pygame.Rect(
+            (DISPLAY_WIDTH - DUNGEON_WIDTH) // 2 - 50,
+            DISPLAY_HEIGHT // 2 - 50,
+            50,
+            50
+        )
+        self.left_button_text = self.title_font.render("<", True, (255, 255, 255))
+        self.left_text_rect = self.left_button_text.get_rect(
+            center=self.left_button_rect.center
+        )
+
+        self.right_button_rect = pygame.Rect(
+            (DISPLAY_WIDTH - DUNGEON_WIDTH) // 2 + DUNGEON_WIDTH,
+            DISPLAY_HEIGHT // 2 - 50,
+            50,
+            50
+        )
+        self.right_button_text = self.title_font.render(">", True, (255, 255, 255))
+        self.right_text_rect = self.right_button_text.get_rect(
+            center=self.right_button_rect.center
         )
 
     def _load_assets(self):
@@ -97,8 +122,17 @@ class GameLoop:
                 elif self.generate_button_rect.collidepoint(event.pos):
                     self.generate_new_dungeon = True
 
+                elif self.left_button_rect.collidepoint(event.pos):
+                    if self.current_view > 0:
+                        self.current_view = self.current_view - 1
+
+                elif self.right_button_rect.collidepoint(event.pos):
+                    if self.current_view < 1:
+                        self.current_view = self.current_view + 1
+
     def _generate_dungeon(self):
         """A method that generates a new dungeon when the button is pressed."""
+        self.current_view = 0
 
         self.rooms = rooms.generate_rooms(
             grid_width=DUNGEON_WIDTH // TILE_SIZE,
@@ -109,15 +143,11 @@ class GameLoop:
             margin=2
         )
 
-        self._draw_rooms()
-        self._draw_triangulation()
-
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
 
         self.dungeon_surface.fill((37, 19, 26))
 
-        # Draw the rooms
         for room in self.rooms:
             for i in range(room.tile_width):
                 for j in range(room.tile_height):
@@ -157,6 +187,20 @@ class GameLoop:
         self.display.fill((0, 0, 0))
         self.display.blit(self.dungeon_surface, self.dungeon_rect)
 
+        if self.rooms:
+            if self.current_view == 0:
+                self._draw_rooms()
+
+            if self.current_view == 1:
+                self._draw_rooms()
+                self._draw_triangulation()
+
+        self._render_ui()
+        pygame.display.flip()
+
+    def _render_ui(self):
+        """A method that renders the UI of the current game frame."""
+
         self.display.blit(self.title_text, self.title_position)
 
         pygame.draw.rect(self.display, (0, 0, 0), self.generate_button_rect)
@@ -165,4 +209,11 @@ class GameLoop:
         pygame.draw.rect(self.display, (0, 0, 0), self.exit_button_rect)
         self.display.blit(self.exit_button_text, self.exit_text_rect)
 
-        pygame.display.flip()
+        if self.rooms:
+            if self.current_view > 0:
+                pygame.draw.rect(self.display, (0, 0, 0), self.left_button_rect)
+                self.display.blit(self.left_button_text, self.left_text_rect)
+
+            if self.current_view < 1:
+                pygame.draw.rect(self.display, (0, 0, 0), self.right_button_rect)
+                self.display.blit(self.right_button_text, self.right_text_rect)
