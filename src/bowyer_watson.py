@@ -193,7 +193,7 @@ class BowyerWatson:
         self.triangles = valid_triangles
 
     def create_new_triangle(self, vertex, polygonal_hole_edges):
-        """A method that forms new triangles by connecting the given vertex with the 
+        """A method that forms new triangles by connecting the given vertex with the
             unshared edges of the polygonal hole and adds these triangles to the triangulation.
 
         This basically means filling the polygonal hole with new triangles."""
