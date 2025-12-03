@@ -4,6 +4,7 @@ import random
 import pygame
 import rooms
 import bowyer_watson
+import prim
 from config import (
     DISPLAY_WIDTH, DISPLAY_HEIGHT,
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
@@ -32,8 +33,10 @@ class GameLoop:
 
         self.generate_new_dungeon = False
         self.rooms = None
+        self.triangles = None
 
         self.bowyer_watson = bowyer_watson.BowyerWatson()
+        self.prim = prim.Prim()
 
         self.dungeon_surface.fill((37, 19, 26))
 
@@ -127,11 +130,12 @@ class GameLoop:
                         self.current_view = self.current_view - 1
 
                 elif self.right_button_rect.collidepoint(event.pos):
-                    if self.current_view < 1:
+                    if self.current_view < 2:
                         self.current_view = self.current_view + 1
 
     def _generate_dungeon(self):
         """A method that generates a new dungeon when the button is pressed."""
+
         self.current_view = 0
 
         self.rooms = rooms.generate_rooms(
@@ -175,11 +179,20 @@ class GameLoop:
             center_y = room.tile_y * TILE_SIZE + room.tile_height * TILE_SIZE // 2
             room_centers.append((center_x, center_y))
 
-        triangles = self.bowyer_watson.triangulate(room_centers)
+        self.triangles = self.bowyer_watson.triangulate(room_centers)
 
-        for triangle in triangles:
+        for triangle in self.triangles:
             for edge in triangle.edges:
                 pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
+
+    def _draw_mst(self):
+        """A method that draws the Minimum Spanning Tree onto the dungeon surface."""
+
+        self.prim.get_vertices(self.triangles)
+        edges = self.prim.create_mst()
+
+        for edge in edges:
+            pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
 
     def _render(self):
         """A method that renders the current game frame."""
@@ -194,6 +207,10 @@ class GameLoop:
             if self.current_view == 1:
                 self._draw_rooms()
                 self._draw_triangulation()
+
+            if self.current_view == 2:
+                self._draw_rooms()
+                self._draw_mst()
 
         self._render_ui()
         pygame.display.flip()
@@ -214,6 +231,6 @@ class GameLoop:
                 pygame.draw.rect(self.display, (0, 0, 0), self.left_button_rect)
                 self.display.blit(self.left_button_text, self.left_text_rect)
 
-            if self.current_view < 1:
+            if self.current_view < 2:
                 pygame.draw.rect(self.display, (0, 0, 0), self.right_button_rect)
                 self.display.blit(self.right_button_text, self.right_text_rect)
