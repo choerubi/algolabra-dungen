@@ -1,6 +1,5 @@
 import os
 import sys
-import random
 import pygame
 import rooms
 import bowyer_watson
@@ -166,11 +165,13 @@ class GameLoop:
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
 
+        floor_tiles = [self.floor_tile_1, self.floor_tile_2]
+
         for room in self.rooms:
             for i in range(room.tile_width):
                 for j in range(room.tile_height):
-                    tile_x = room.tile_x + i # x-coordinate of the specific tile inside the room
-                    tile_y = room.tile_y + j # y-coordinate of the specific tile inside the room
+                    tile_x = room.tile_x + i
+                    tile_y = room.tile_y + j
 
                     tile_rect = pygame.Rect(
                         tile_x * TILE_SIZE,
@@ -179,7 +180,7 @@ class GameLoop:
                         TILE_SIZE
                     )
 
-                    floor_tile = random.choice([self.floor_tile_1, self.floor_tile_2])
+                    floor_tile = floor_tiles[(i + j) % 2]
                     self.dungeon_surface.blit(floor_tile, tile_rect)
 
     def _draw_triangulation(self):
