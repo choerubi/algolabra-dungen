@@ -34,6 +34,8 @@ class GameLoop:
         self.generate_new_dungeon = False
         self.rooms = None
         self.triangles = None
+        self.mst_edges = None
+        self.extra_edges = None
 
         self.bowyer_watson = bowyer_watson.BowyerWatson()
         self.prim = prim.Prim()
@@ -130,7 +132,7 @@ class GameLoop:
                         self.current_view = self.current_view - 1
 
                 elif self.right_button_rect.collidepoint(event.pos):
-                    if self.current_view < 2:
+                    if self.current_view < 3:
                         self.current_view = self.current_view + 1
 
     def _generate_dungeon(self):
@@ -147,10 +149,22 @@ class GameLoop:
             margin=2
         )
 
+        room_centers = []
+
+        for room in self.rooms:
+            center_x = room.tile_x * TILE_SIZE + room.tile_width * TILE_SIZE // 2
+            center_y = room.tile_y * TILE_SIZE + room.tile_height * TILE_SIZE // 2
+            room_centers.append((center_x, center_y))
+
+        self.triangles = self.bowyer_watson.triangulate(room_centers)
+
+        self.prim.get_vertices(self.triangles)
+        self.mst_edges = self.prim.create_mst()
+
+        self.extra_edges = prim.add_random_edges(15, self.mst_edges, self.triangles, self.rooms)
+
     def _draw_rooms(self):
         """A method that draws the rooms onto the dungeon surface."""
-
-        self.dungeon_surface.fill((37, 19, 26))
 
         for room in self.rooms:
             for i in range(room.tile_width):
@@ -158,7 +172,6 @@ class GameLoop:
                     tile_x = room.tile_x + i # x-coordinate of the specific tile inside the room
                     tile_y = room.tile_y + j # y-coordinate of the specific tile inside the room
 
-                    # Convert tile coordinates into pixel coordinates
                     tile_rect = pygame.Rect(
                         tile_x * TILE_SIZE,
                         tile_y * TILE_SIZE,
@@ -172,15 +185,6 @@ class GameLoop:
     def _draw_triangulation(self):
         """A method that draws the Delaunay triangulation onto the dungeon surface."""
 
-        room_centers = []
-
-        for room in self.rooms:
-            center_x = room.tile_x * TILE_SIZE + room.tile_width * TILE_SIZE // 2
-            center_y = room.tile_y * TILE_SIZE + room.tile_height * TILE_SIZE // 2
-            room_centers.append((center_x, center_y))
-
-        self.triangles = self.bowyer_watson.triangulate(room_centers)
-
         for triangle in self.triangles:
             for edge in triangle.edges:
                 pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
@@ -188,17 +192,21 @@ class GameLoop:
     def _draw_mst(self):
         """A method that draws the Minimum Spanning Tree onto the dungeon surface."""
 
-        self.prim.get_vertices(self.triangles)
-        edges = self.prim.create_mst()
+        for edge in self.mst_edges:
+            pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
 
-        for edge in edges:
+    def _draw_extra_edges(self):
+        """A method that draws the Minimum Spanning Tree with the extra edges
+            onto the dungeon surface."""
+
+        for edge in self.extra_edges:
             pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
 
     def _render(self):
         """A method that renders the current game frame."""
 
         self.display.fill((0, 0, 0))
-        self.display.blit(self.dungeon_surface, self.dungeon_rect)
+        self.dungeon_surface.fill((37, 19, 26))
 
         if self.rooms:
             if self.current_view == 0:
@@ -212,7 +220,14 @@ class GameLoop:
                 self._draw_rooms()
                 self._draw_mst()
 
+            if self.current_view == 3:
+                self._draw_rooms()
+                self._draw_mst()
+                self._draw_extra_edges()
+
+        self.display.blit(self.dungeon_surface, self.dungeon_rect)
         self._render_ui()
+
         pygame.display.flip()
 
     def _render_ui(self):
@@ -231,6 +246,6 @@ class GameLoop:
                 pygame.draw.rect(self.display, (0, 0, 0), self.left_button_rect)
                 self.display.blit(self.left_button_text, self.left_text_rect)
 
-            if self.current_view < 2:
+            if self.current_view < 3:
                 pygame.draw.rect(self.display, (0, 0, 0), self.right_button_rect)
                 self.display.blit(self.right_button_text, self.right_text_rect)

@@ -1,7 +1,9 @@
 import math
 import heapq
 import random
+import pygame
 from bowyer_watson import Edge
+from config import TILE_SIZE
 
 class Prim:
     """A class that implements Prim's algorithm to create a Minimum Spanning Tree."""
@@ -61,20 +63,19 @@ class Prim:
 
         mst_edges = set()
 
-        # Loop over possible edges while adding the shortest available edge to the MST edges
         while possible_edges and unexplored_vertices:
+            # Pop the shortest edge from possible edges
             weight, prev_vertex, next_vertex = heapq.heappop(possible_edges)
 
             if next_vertex not in explored_vertices:
-                # Add the popped edge from possible edges to the final MST edges
-                # if the edge connects to an unexplored vertex
+                # Add the edge to the final MST edges if it connects to an unexplored vertex
                 mst_edges.add(Edge(prev_vertex, next_vertex))
 
                 # Remove the vertex from the vertices to be explored
                 explored_vertices.add(next_vertex)
                 unexplored_vertices.discard(next_vertex)
 
-                # Add the edges to the unexplored neighbors of this new vertex
+                # Add the edges to the unexplored neighbors of the new vertex
                 # to the priority queue of possible edges
                 for neighbor in self.neighbors[next_vertex]:
                     if neighbor not in explored_vertices:
@@ -83,6 +84,47 @@ class Prim:
 
         return mst_edges
 
-    def add_random_edges(self):
-        """A method that adds random edges from the triangulation to the set of edges
-            to introduce cycles to the dungeon."""
+def edge_collides_with_room(edge, rooms):
+    """A function that checks if the extra edge about to be added collides with any room
+        other than the rooms that contain the endpoints of the edge."""
+
+    room_rects = []
+
+    ax, ay = edge.v1
+    bx, by = edge.v2
+
+    for room in rooms:
+        room_rect = pygame.Rect(
+            room.tile_x * TILE_SIZE,
+            room.tile_y * TILE_SIZE,
+            room.tile_width * TILE_SIZE,
+            room.tile_height * TILE_SIZE
+        )
+        if not room_rect.collidepoint((ax, ay)):
+            if not room_rect.collidepoint((bx, by)):
+                room_rects.append(room_rect)
+
+    for room_rect in room_rects:
+        if room_rect.clipline((ax, ay), (bx, by)):
+            return True
+
+    return False
+
+def add_random_edges(chance, mst_edges, triangles, rooms):
+    """A function that adds random extra edges from the triangulation to the set of edges
+        to introduce cycles to the dungeon."""
+
+    bw_edges = set()
+    extra_edges = set()
+
+    for triangle in triangles:
+        for edge in triangle.edges:
+            if edge not in mst_edges:
+                bw_edges.add(edge)
+
+    for edge in bw_edges:
+        if edge_collides_with_room(edge, rooms) is False:
+            if random.randint(1, 100) <= chance:
+                extra_edges.add(edge)
+
+    return extra_edges
