@@ -1,24 +1,20 @@
-[project]
+[tool.poetry]
 name = "algolabra-dungen"
 version = "0.1.0"
 description = "Configurable 2D Dungeon Generator built with pygame."
-authors = [
-    {name = "choerubi",email = "iida.porola@helsinki.fi"}
-]
+authors = ["choerubi <iida.porola@helsinki.fi>"]
 readme = "README.md"
-requires-python = "^3.10"
-dependencies = [
-    "pygame (>=2.6.1,<3.0.0)"
-]
+package-mode = false
 
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = ">=2.6.1,<3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pylint = ">=4.0.2,<5.0.0"
+pytest = ">=9.0.0,<10.0.0"
+coverage = ">=7.11.2,<8.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[dependency-groups]
-dev = [
-    "pylint (>=4.0.2,<5.0.0)",
-    "pytest (>=9.0.0,<10.0.0)",
-    "coverage (>=7.11.2,<8.0.0)"
-]
