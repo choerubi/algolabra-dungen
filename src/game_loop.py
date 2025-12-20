@@ -2,6 +2,7 @@ import os
 import sys
 import random
 import pygame
+import popup
 import rooms
 import bowyer_watson
 import prim
@@ -32,7 +33,6 @@ class GameLoop:
 
         self.current_view = 0
 
-        self.generate_new_dungeon = False
         self.rooms = None
         self.triangles = None
         self.mst_edges = None
@@ -40,6 +40,7 @@ class GameLoop:
         self.tiles = None
         self.floor_map = None
 
+        self.popup = popup.InputPopup()
         self.bowyer_watson = bowyer_watson.BowyerWatson()
         self.prim = prim.Prim()
         self.a_star = a_star.AStar()
@@ -136,11 +137,6 @@ class GameLoop:
 
         while True:
             self._handle_events()
-
-            if self.generate_new_dungeon:
-                self._generate_dungeon()
-                self.generate_new_dungeon = False
-
             self._render()
 
     def _handle_events(self):
@@ -151,13 +147,22 @@ class GameLoop:
                 pygame.quit()
                 sys.exit()
 
+            user_input = self.popup.handle_events(event)
+
+            if user_input:
+                min_size, max_size, max_rooms = user_input
+                self._generate_dungeon(min_size, max_size, max_rooms)
+
+            if self.popup.popup_active:
+                continue
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.exit_button_rect.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
 
                 elif self.generate_button_rect.collidepoint(event.pos):
-                    self.generate_new_dungeon = True
+                    self.popup.open()
 
                 elif self.left_button_rect.collidepoint(event.pos):
                     if self.current_view > 0:
@@ -167,7 +172,7 @@ class GameLoop:
                     if self.current_view < 4:
                         self.current_view = self.current_view + 1
 
-    def _generate_dungeon(self):
+    def _generate_dungeon(self, min_size, max_size, max_rooms):
         """A method that generates a new dungeon when the button is pressed."""
 
         self.current_view = 0
@@ -175,9 +180,9 @@ class GameLoop:
         self.rooms = rooms.generate_rooms(
             grid_width=DUNGEON_WIDTH // TILE_SIZE,
             grid_height=DUNGEON_HEIGHT // TILE_SIZE,
-            min_size=4,
-            max_size=10,
-            max_rooms=12,
+            min_size=min_size,
+            max_size=max_size,
+            max_rooms=max_rooms,
             margin=2
         )
 
@@ -305,8 +310,7 @@ class GameLoop:
             pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
 
     def _draw_extra_edges(self):
-        """A method that draws the Minimum Spanning Tree with the extra edges
-            onto the dungeon surface."""
+        """A method that draws the added extra edges onto the dungeon surface."""
 
         for edge in self.extra_edges:
             pygame.draw.line(self.dungeon_surface, (57, 255, 20), edge.v1, edge.v2)
@@ -374,6 +378,7 @@ class GameLoop:
 
         self.display.blit(self.dungeon_surface, self.dungeon_rect)
         self._render_ui()
+        self.popup.draw_window(self.display)
 
         pygame.display.flip()
 
