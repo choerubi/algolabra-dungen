@@ -52,9 +52,7 @@ class InputBox:
     def get_input_value(self):
         """A method that returns the value the user submitted."""
 
-        if self.text:
-            return int(self.text)
-        return 0
+        return int(self.text) if self.text else 0
 
 class InputPopup:
     def __init__(self):
@@ -69,7 +67,7 @@ class InputPopup:
             POPUP_HEIGHT
         )
 
-        self.min_size = InputBox(self.popup_rect.x + 295, self.popup_rect.y + 50, 105, 35, "4")
+        self.min_size = InputBox(self.popup_rect.x + 295, self.popup_rect.y + 50, 105, 35, "3")
         self.max_size = InputBox(self.popup_rect.x + 295, self.popup_rect.y + 100, 105, 35, "10")
         self.max_rooms = InputBox(self.popup_rect.x + 295, self.popup_rect.y + 150, 105, 35, "12")
 
@@ -114,8 +112,8 @@ class InputPopup:
         return None
 
     def _close(self):
-        """A method that validates the inputs and closes the popup window
-            if all inputs are valid."""
+        """A method that validates the input values and closes the popup window
+            if all input values are valid."""
 
         for box in self.input_boxes:
             box.invalid_input = False
@@ -128,9 +126,9 @@ class InputPopup:
             self.min_size.invalid_input = True
             self.max_size.invalid_input = True
 
-        if not 4 <= min_size <= 10:
+        if not 3 <= min_size <= 10:
             self.min_size.invalid_input = True
-        if not 4 <= max_size <= 10:
+        if not 3 <= max_size <= 10:
             self.max_size.invalid_input = True
         if not 3 <= max_rooms <= 15:
             self.max_rooms.invalid_input = True

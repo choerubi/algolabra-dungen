@@ -12,7 +12,7 @@ from config import (
     DUNGEON_WIDTH, DUNGEON_HEIGHT, TILE_SIZE
 )
 
-# pylint: disable=too-many-instance-attributes,too-many-nested-blocks,too-many-statements
+# pylint: disable=too-many-instance-attributes,too-many-nested-blocks,too-many-return-statements
 class GameLoop:
     def __init__(self):
         """A constructor that initializes the game window."""
@@ -183,7 +183,7 @@ class GameLoop:
             min_size=min_size,
             max_size=max_size,
             max_rooms=max_rooms,
-            margin=2
+            margin=3
         )
 
         room_centers = []
@@ -241,60 +241,67 @@ class GameLoop:
                     floor_tile = self.floor_map[tile_x][tile_y]
                     self.dungeon_surface.blit(floor_tile, tile_rect)
 
-    def _get_tile_position(self, tile_x, tile_y):
-        """A method that finds the position of a tile in a room based on the surrounding tiles."""
+    def _get_wall_tile(self, tile_x, tile_y):
+        """A method that finds the position of a tile based on the surrounding tiles
+            and returns the corresponding wall tile."""
 
-        if 0 <= tile_x < len(self.tiles) - 1:
-            if 0 <= tile_y < len(self.tiles[0]) - 1:
+        if 0 < tile_x < len(self.tiles) - 1:
+            if 0 < tile_y < len(self.tiles[0]) - 1:
 
                 up = self.tiles[tile_x][tile_y - 1] == 1
                 down = self.tiles[tile_x][tile_y + 1] == 1
                 left = self.tiles[tile_x - 1][tile_y] == 1
                 right = self.tiles[tile_x + 1][tile_y] == 1
 
-                return (up, down, left, right)
+                up_l = self.tiles[tile_x - 1][tile_y - 1] == 1
+                up_r = self.tiles[tile_x + 1][tile_y - 1] == 1
+                down_l = self.tiles[tile_x - 1][tile_y + 1] == 1
+                down_r = self.tiles[tile_x + 1][tile_y + 1] == 1
 
-        return False
+                if not up and down and not left and not right:
+                    return self.top_wall_tile
+                if up and not down and not left and not right:
+                    return self.bottom_wall_tile
+                if not up and not down and not left and right:
+                    return self.left_wall_tile
+                if not up and not down and left and not right:
+                    return self.right_wall_tile
+
+                if not up and not down and not left and not right:
+                    if not up_l and not up_r and not down_l and down_r:
+                        return self.top_l_corner_tile
+                    if not up_l and not up_r and down_l and not down_r:
+                        return self.top_r_corner_tile
+                    if not up_l and up_r and not down_l and not down_r:
+                        return self.bottom_l_corner_tile
+                    if up_l and not up_r and not down_l and not down_r:
+                        return self.bottom_r_corner_tile
+
+        return None
 
     def _draw_wall_tiles(self):
         """A method that draws the wall tiles onto the dungeon surface."""
 
+        wall_tiles = set()
+
         for tile_x in range(len(self.tiles)):
             for tile_y in range(len(self.tiles[tile_x])):
+                if self.tiles[tile_x][tile_y] in (0, 2):
+                    wall_tile = self._get_wall_tile(tile_x, tile_y)
 
-                if self.tiles[tile_x][tile_y] == 1:
-                    tile_pos = self._get_tile_position(tile_x, tile_y)
-                    tile = None
+                    if wall_tile:
+                        tile_rect = pygame.Rect(
+                                    tile_x * TILE_SIZE,
+                                    tile_y * TILE_SIZE,
+                                    TILE_SIZE,
+                                    TILE_SIZE
+                        )
+                        self.dungeon_surface.blit(wall_tile, tile_rect)
+                        wall_tiles.add((tile_x, tile_y))
 
-                    if tile_pos == (True, True, True, True):
-                        continue
-
-                    if tile_pos == (False, True, True, True):
-                        tile = self.top_wall_tile
-                    elif tile_pos == (True, False, True, True):
-                        tile = self.bottom_wall_tile
-                    elif tile_pos == (True, True, False, True):
-                        tile = self.left_wall_tile
-                    elif tile_pos == (True, True, True, False):
-                        tile = self.right_wall_tile
-
-                    elif tile_pos == (False, True, False, True):
-                        tile = self.top_l_corner_tile
-                    elif tile_pos == (False, True, True, False):
-                        tile = self.top_r_corner_tile
-                    elif tile_pos == (True, False, False, True):
-                        tile = self.bottom_l_corner_tile
-                    elif tile_pos == (True, False, True, False):
-                        tile = self.bottom_r_corner_tile
-
-                    tile_rect = pygame.Rect(
-                                tile_x * TILE_SIZE,
-                                tile_y * TILE_SIZE,
-                                TILE_SIZE,
-                                TILE_SIZE
-                    )
-
-                    self.dungeon_surface.blit(tile, tile_rect)
+        # Mark wall tiles as twos
+        for tile_x, tile_y in wall_tiles:
+            self.tiles[tile_x][tile_y] = 2
 
     def _draw_triangulation(self):
         """A method that draws the Delaunay triangulation onto the dungeon surface."""
@@ -325,7 +332,7 @@ class GameLoop:
             path = self.a_star.find_path(start_pos, goal_pos, self.tiles)
 
             for tile_x, tile_y in path:
-                if self.tiles[tile_x][tile_y] == 0:
+                if self.tiles[tile_x][tile_y] in (0, 2):
                     tile_rect = pygame.Rect(
                         tile_x * TILE_SIZE,
                         tile_y * TILE_SIZE,
