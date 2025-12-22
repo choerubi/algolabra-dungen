@@ -1,4 +1,3 @@
-import math
 import heapq
 
 class Vertex:
@@ -30,23 +29,7 @@ class AStar:
         """A method that calculates the estimated distance between the current vertex
             and the goal vertex to use as the heuristic value."""
 
-        return math.sqrt((v1[0] - v2[0])**2 + (v1[1] - v2[1])**2)
-
-    def get_neighbors(self, vertex, tiles):
-        """A method that gets all valid neighboring vertices of the given vertex."""
-
-        neighbors = []
-
-        possible_moves = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-        x, y = vertex.position
-
-        for move_x, move_y in possible_moves:
-            new_x = move_x + x
-            new_y = move_y + y
-            if new_x < len(tiles) and new_y < len(tiles[0]):
-                neighbors.append((new_x, new_y))
-
-        return neighbors
+        return abs(v1[0] - v2[0]) + abs(v1[1] - v2[1])
 
     def reconstruct_path(self, vertex):
         """A method that reconstructs the path from the goal vertex to the start vertex
@@ -58,8 +41,33 @@ class AStar:
             final_path.append(vertex.position)
             vertex = vertex.parent
 
-        final_path.reverse()
-        return final_path
+        return reversed(final_path)
+
+    def get_neighbors(self, vertex, tiles):
+        """A method that gets all valid neighboring vertices of the given vertex."""
+
+        neighbors = []
+
+        for move_x, move_y in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            new_x = move_x + vertex.position[0]
+            new_y = move_y + vertex.position[1]
+
+            if 0 <= new_x < len(tiles) and 0 <= new_y < len(tiles[0]):
+                neighbors.append((new_x, new_y))
+
+        return neighbors
+
+    def get_tile_cost(self, tile_type):
+        """A method that returns the cost of a tile."""
+
+        if tile_type == 0:
+            return 1
+        if tile_type == 1:
+            return 10
+        if tile_type == 2:
+            return 50
+
+        return float("inf")
 
     def find_path(self, start_pos, goal_pos, tiles):
         """A method that finds the optimal path from the start vertex to the goal vertex."""
@@ -94,8 +102,11 @@ class AStar:
             for neighbor_pos in self.get_neighbors(current_vertex, tiles):
                 if neighbor_pos not in closed_set:
 
-                    new_g_score = current_vertex.g + self.calculate_heuristic(
-                        current_vertex.position, neighbor_pos
+                    tile_type = tiles[neighbor_pos[0]][neighbor_pos[1]]
+                    new_g_score = (
+                        current_vertex.g
+                        + self.calculate_heuristic(current_vertex.position, neighbor_pos)
+                        + self.get_tile_cost(tile_type)
                     )
                     old_g_score = best_g_score.get(neighbor_pos, float("inf"))
 
