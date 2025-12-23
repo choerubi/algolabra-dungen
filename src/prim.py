@@ -1,9 +1,7 @@
 import math
 import heapq
 import random
-import pygame
 from bowyer_watson import Edge
-from config import TILE_SIZE
 
 class Prim:
     """A class that implements Prim's algorithm to create a Minimum Spanning Tree."""
@@ -84,33 +82,7 @@ class Prim:
 
         return mst_edges
 
-def edge_collides_with_room(edge, rooms):
-    """A function that checks if the extra edge about to be added collides with any room
-        other than the rooms that contain the endpoints of the edge."""
-
-    room_rects = []
-
-    ax, ay = edge.v1
-    bx, by = edge.v2
-
-    for room in rooms:
-        room_rect = pygame.Rect(
-            room.tile_x * TILE_SIZE,
-            room.tile_y * TILE_SIZE,
-            room.tile_width * TILE_SIZE,
-            room.tile_height * TILE_SIZE
-        )
-        if not room_rect.collidepoint((ax, ay)):
-            if not room_rect.collidepoint((bx, by)):
-                room_rects.append(room_rect)
-
-    for room_rect in room_rects:
-        if room_rect.clipline((ax, ay), (bx, by)):
-            return True
-
-    return False
-
-def add_random_edges(chance, mst_edges, triangles, rooms):
+def add_random_edges(chance, mst_edges, triangles):
     """A function that adds random extra edges from the triangulation to the set of edges
         to introduce cycles to the dungeon."""
 
@@ -123,8 +95,7 @@ def add_random_edges(chance, mst_edges, triangles, rooms):
                 bw_edges.add(edge)
 
     for edge in bw_edges:
-        if edge_collides_with_room(edge, rooms) is False:
-            if random.randint(1, 100) <= chance:
-                extra_edges.add(edge)
+        if random.randint(1, 100) <= chance:
+            extra_edges.add(edge)
 
     return extra_edges

@@ -197,7 +197,7 @@ class GameLoop:
         self.prim.get_vertices(self.triangles)
         self.mst_edges = self.prim.create_mst()
 
-        self.extra_edges = prim.add_random_edges(15, self.mst_edges, self.triangles, self.rooms)
+        self.extra_edges = prim.add_random_edges(15, self.mst_edges, self.triangles)
 
         self._map_tiles()
 
