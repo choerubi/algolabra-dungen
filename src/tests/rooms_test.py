@@ -17,6 +17,34 @@ class TestRoom(unittest.TestCase):
         self.assertEqual(room.room_rect.height, 8 * TILE_SIZE)
 
 class TestGenerateRooms(unittest.TestCase):
+    def test_correct_number_of_rooms(self):
+        max_rooms = 10
+
+        rooms = generate_rooms(
+            grid_width=40,
+            grid_height=30,
+            min_size=2,
+            max_size=10,
+            max_rooms=max_rooms,
+            margin=2
+        )
+
+        self.assertLessEqual(len(rooms), max_rooms)
+
+    def test_no_room_overlaps(self):
+        rooms = generate_rooms(
+            grid_width=40,
+            grid_height=30,
+            min_size=2,
+            max_size=10,
+            max_rooms=10,
+            margin=2
+        )
+
+        for i, room_a in enumerate(rooms):
+            for room_b in rooms[i + 1:]:
+                self.assertFalse(room_a.room_rect.colliderect(room_b.room_rect))
+
     def test_rooms_within_bounds(self):
         grid_width = 40
         grid_height = 30
@@ -36,31 +64,3 @@ class TestGenerateRooms(unittest.TestCase):
             self.assertGreaterEqual(room.tile_y, margin)
             self.assertLessEqual(room.tile_x + room.tile_width, grid_width - margin)
             self.assertLessEqual(room.tile_y + room.tile_height, grid_height - margin)
-
-    def test_no_room_overlaps(self):
-        rooms = generate_rooms(
-            grid_width=40,
-            grid_height=30,
-            min_size=2,
-            max_size=10,
-            max_rooms=10,
-            margin=2
-        )
-
-        for i, room_a in enumerate(rooms):
-            for room_b in rooms[i + 1:]:
-                self.assertFalse(room_a.room_rect.colliderect(room_b.room_rect))
-
-    def test_no_infinite_room_generation(self):
-        max_rooms = 10
-
-        rooms = generate_rooms(
-            grid_width=40,
-            grid_height=30,
-            min_size=2,
-            max_size=10,
-            max_rooms=max_rooms,
-            margin=2
-        )
-
-        self.assertLessEqual(len(rooms), max_rooms)

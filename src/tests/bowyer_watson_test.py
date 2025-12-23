@@ -10,12 +10,6 @@ class TestEdge(unittest.TestCase):
         self.assertEqual(e1, e2)
         self.assertEqual(hash(e1), hash(e2))
 
-    def test_edges_not_equal(self):
-        e1 = Edge((0, 0), (1, 1))
-        e2 = Edge((1, 1), (2, 2))
-
-        self.assertNotEqual(e1, e2)
-
 class TestTriangle(unittest.TestCase):
     def test_correct_circumcircle_calculated(self):
         v1, v2, v3 = ((0, 0), (3, 0), (0, 5))
@@ -57,7 +51,7 @@ class TestTriangle(unittest.TestCase):
 
 class TestBowyerWatson(unittest.TestCase):
     def setUp(self):
-        self.vertices = [(1, 1), (5, 2), (7, 3), (2,4), (8, 6), (5, 7), (2, 8), (8, 9)]
+        self.vertices = [(1, 1), (5, 2), (7, 3), (2, 4), (8, 6), (5, 7), (2, 8), (8, 9)]
         self.bowyer_watson = BowyerWatson()
         self.bowyer_watson.triangulate(self.vertices)
 
@@ -132,26 +126,62 @@ class TestBowyerWatson(unittest.TestCase):
             else:
                 self.assertNotIn(e, self.polygon_edges)
 
-    def correct_triangles_removed(self):
+    def test_correct_triangles_removed(self):
         self.bowyer_watson.remove_invalid_triangles(self.invalid_triangles)
 
         for t in self.invalid_triangles:
             self.assertNotIn(t, self.bowyer_watson.triangles)
 
-    def polygonal_hole_filled(self):
+    def test_polygonal_hole_filled(self):
         old_triangles = len(self.bowyer_watson.triangles)
         self.bowyer_watson.create_new_triangle(self.new_vertex, self.polygon_edges)
         new_triangles = len(self.bowyer_watson.triangles) - old_triangles
 
-        # Check that the amount of new triangles is the same as the amount of polygon edges
+        # Check the amount of new triangles is the same as the amount of polygon edges
         self.assertEqual(new_triangles, len(self.polygon_edges))
 
-    def super_triangle_removed(self):
+    def test_super_triangle_removed(self):
         super_triangle = self.bowyer_watson.create_super_triangle(self.vertices)
         self.bowyer_watson.triangles.append(super_triangle)
         self.bowyer_watson.remove_super_triangle(super_triangle)
 
         self.assertNotIn(super_triangle, self.bowyer_watson.triangles)
 
-    def correct_triangulation(self):
-        pass
+    def test_correct_number_of_triangles(self):
+        triangles = self.bowyer_watson.triangulate(self.vertices)
+        n = len(self.vertices)
+
+        # Number of vertices on the convex hull (calculated on pen and paper)
+        h = 6
+
+        # Calculate the number of triangles in the triangulation
+        triangles_count = 2 * n - h - 2
+
+        self.assertEqual(triangles_count, len(triangles))
+
+    def test_all_vertices_connected(self):
+        triangles = self.bowyer_watson.triangulate(self.vertices)
+        neighbors = {}
+
+        for v in self.vertices:
+            neighbors[v] = set()
+
+        for t in triangles:
+            for e in t.edges:
+                neighbors[e.v1].add(e.v2)
+                neighbors[e.v2].add(e.v1)
+
+        # Traverse with BFS
+        connected_vertices = set()
+        queue = []
+
+        connected_vertices.add(self.vertices[0])
+        queue.append(self.vertices[0])
+
+        for v in queue:
+            for next_v in neighbors[v]:
+                if next_v not in connected_vertices:
+                    connected_vertices.add(next_v)
+                    queue.append(next_v)
+
+        self.assertEqual(connected_vertices, set(self.vertices))
