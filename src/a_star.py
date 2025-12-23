@@ -41,7 +41,7 @@ class AStar:
             final_path.append(vertex.position)
             vertex = vertex.parent
 
-        return reversed(final_path)
+        return final_path[::-1]
 
     def get_neighbors(self, vertex, tiles):
         """A method that gets all valid neighboring vertices of the given vertex."""
